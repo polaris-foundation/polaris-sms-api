@@ -1,0 +1,20 @@
+database:
+  host: uk-dev-api-upstream-quail-db.postgres.database.azure.com
+  user_name: dhos-sms@uk-dev-api-upstream-quail-db
+  su_name: postgres@uk-dev-api-upstream-quail-db
+  name: dhos-sms
+
+environment: DEVELOPMENT
+imagePullPolicy: Always
+# This placeholder value gets overridden by devops-release-config during a release
+imagetag: dev
+allow_drop_data: true
+host_env: azure
+log_level: DEBUG
+
+gateway_url: https://api-uk-dev.sensynehealth.com
+country_code: GB
+twilio_account_sid: AC3e553964a4935f4c505b451f0f3fd64e
+
+ingress:
+  hostName: api-dev.sensynehealth.local

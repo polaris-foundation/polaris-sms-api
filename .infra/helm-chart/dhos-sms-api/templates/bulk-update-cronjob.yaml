@@ -1,0 +1,32 @@
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+    name: dhos-sms-api-bulk-update-cronjob
+spec:
+  schedule: "0 * * * *"
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: dhos-sms-api-bulk-update-job
+            sh/version: {{ .Values.imagetag }}
+            sh/type: cronjob
+{{ toYaml .Values.labels | indent 12 }}
+        spec:
+          restartPolicy: Never
+          containers:
+          - name: dhos-sms-api-bulk-update
+            image: "{{ (index .Values.image .Values.pull_images_from).utils }}:{{ .Values.utilsVersion }}"
+            imagePullPolicy: {{ .Values.imagePullPolicy }}
+            command: [ "/scripts/script.sh" ]
+            volumeMounts:
+            - name: scripts
+              mountPath: /scripts
+              readOnly: true
+          volumes:
+          - name: scripts
+            configMap:
+              name: dhos-sms-api-bulk-update-cm
+              defaultMode: 0755

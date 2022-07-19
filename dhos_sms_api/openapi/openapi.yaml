@@ -1,0 +1,552 @@
+openapi: 3.0.3
+info:
+  description: The DHOS SMS API is responsible for sending SMS messages.
+  title: DHOS SMS API
+  version: 1.1.0
+paths:
+  /running:
+    get:
+      summary: Verify service is running
+      description: Verifies that the service is running. Used for monitoring in kubernetes.
+      tags:
+      - monitoring
+      responses:
+        '200':
+          description: If we respond, we are running
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  running:
+                    type: boolean
+                    example: true
+      operationId: flask_batteries_included.blueprint_monitoring.app_running
+  /version:
+    get:
+      summary: Get version information
+      description: Get the version number, circleci build number, and git hash.
+      tags:
+      - monitoring
+      responses:
+        '200':
+          description: Version numbers
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  circle:
+                    type: string
+                    example: '1234'
+                  hash:
+                    type: string
+                    example: 366c204
+      operationId: flask_batteries_included.blueprint_monitoring.app_version
+  /dhos/v1/sms:
+    post:
+      summary: Send SMS message
+      description: Create and send an SMS message with the details provided in the
+        request body
+      tags:
+      - sms
+      requestBody:
+        description: SMS message details
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SmsMessageRequest'
+              x-body-name: message_details
+      parameters:
+      - description: Trustomer code
+        in: header
+        name: X-Trustomer
+        required: true
+        schema:
+          example: ouh
+          type: string
+      - description: Product name
+        in: header
+        name: X-Product
+        required: true
+        schema:
+          example: gdm
+          type: string
+      responses:
+        '200':
+          description: Sent SMS message
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SmsMessageResponse'
+        default:
+          description: Error, e.g. 400 Bad Request, 503 Service Unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      operationId: dhos_sms_api.blueprint_api.create_message
+    get:
+      summary: Get all SMS messages
+      description: Get all SMS messages including details of when they were sent and
+        their status.
+      tags:
+      - sms
+      parameters:
+      - description: Trustomer code
+        in: header
+        name: X-Trustomer
+        required: true
+        schema:
+          example: ouh
+          type: string
+      - description: Product name
+        in: header
+        name: X-Product
+        required: true
+        schema:
+          example: gdm
+          type: string
+      - name: receiver
+        in: query
+        description: SMS receiver phone number to filter SMS messages to
+        required: false
+        schema:
+          type: string
+          example: '+447123456789'
+      - name: limit
+        in: query
+        description: Number of SMS messages to limit response to (defaults to no limit)
+        required: false
+        schema:
+          type: integer
+          example: 5
+      responses:
+        '200':
+          description: List of SMS messages
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SmsMessageResponse'
+        default:
+          description: Error, e.g. 400 Bad Request, 503 Service Unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      operationId: dhos_sms_api.blueprint_api.get_all_messages
+  /dhos/v1/sms/{message_id}:
+    get:
+      summary: Get SMS message by UUID
+      description: Get the SMS message with the UUID provided in the request
+      tags:
+      - sms
+      parameters:
+      - name: message_id
+        in: path
+        description: Message UUID
+        required: true
+        schema:
+          type: string
+          example: acd39afe-4583-401c-ae99-62227d0a86ed
+      responses:
+        '200':
+          description: The SMS message
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SmsMessageResponse'
+        default:
+          description: Error, e.g. 400 Bad Request, 503 Service Unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      operationId: dhos_sms_api.blueprint_api.get_message_by_uuid
+    delete:
+      summary: Delete message by UUID
+      description: Delete the message with the provided UUID
+      tags:
+      - sms
+      parameters:
+      - name: message_id
+        in: path
+        description: Message UUID
+        required: true
+        schema:
+          type: string
+          example: acd39afe-4583-401c-ae99-62227d0a86ed
+      - description: Trustomer code
+        in: header
+        name: X-Trustomer
+        required: true
+        schema:
+          example: ouh
+          type: string
+      - description: Product name
+        in: header
+        name: X-Product
+        required: true
+        schema:
+          example: gdm
+          type: string
+      responses:
+        '200':
+          description: The deleted SMS message
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SmsMessageResponse'
+        default:
+          description: Error, e.g. 400 Bad Request, 503 Service Unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      operationId: dhos_sms_api.blueprint_api.delete_message
+  /dhos/v1/sms_status_counts:
+    get:
+      summary: Get SMS message status report
+      description: Get a summary of the SMS messages sent between two dates. The results
+        are reported per day, and include the SMS message statuses.
+      tags:
+      - sms
+      parameters:
+      - name: start_date
+        description: ISO8601 start date for SMS message counts
+        in: query
+        required: true
+        schema:
+          type: string
+          example: 2020-01-01 00:00:00+00:00
+      - name: end_date
+        description: ISO8601 end date for SMS message counts
+        in: query
+        required: true
+        schema:
+          type: string
+          example: 2020-02-01 00:00:00+00:00
+      - name: trustomer_code
+        in: query
+        description: Trustomer code to filter SMS messages to
+        required: false
+        schema:
+          type: string
+          example: ouh
+      - name: product_name
+        in: query
+        description: Product name to filter SMS messages to
+        required: false
+        schema:
+          type: string
+          example: gdm
+      responses:
+        '200':
+          description: SMS message status report
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SmsMessageStatusReport'
+        default:
+          description: Error, e.g. 400 Bad Request, 503 Service Unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      operationId: dhos_sms_api.blueprint_api.get_message_status_counts
+  /dhos/v1/sms/callback:
+    post:
+      summary: Update SMS message status
+      description: Update the status of an SMS message. This is the callback endpoint
+        which Twilio is asked to hit when the status of a message in Twilio is updated.
+        Note the Twilio authentication via header.
+      tags:
+      - sms
+      requestBody:
+        description: SMS message update
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CallbackRequest'
+      responses:
+        '204':
+          description: Status updated
+        default:
+          description: Error, e.g. 400 Bad Request, 503 Service Unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      operationId: dhos_sms_api.blueprint_api.sms_callback
+  /dhos/v1/sms/bulk_update:
+    get:
+      summary: Bulk update SMS message status from Twilio
+      description: 'Update the status of all known incomplete SMS messages using the
+        Twilio API. Note: only updates messages sent in the last 7 days.'
+      tags:
+      - sms
+      responses:
+        '204':
+          description: Status updated
+        default:
+          description: Error, e.g. 400 Bad Request, 503 Service Unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      operationId: dhos_sms_api.blueprint_api.sms_bulk_update
+components:
+  schemas:
+    Error:
+      type: object
+      properties:
+        code:
+          type: integer
+          description: HTTP response code
+          example: 404
+        message:
+          type: string
+          description: Message attached to response
+          example: Not Found
+      required:
+      - code
+      description: An error response in json format
+    SmsMessageRequest:
+      type: object
+      properties:
+        sender:
+          type: string
+          description: UUID of the message sender
+          example: c75aa921-efc5-492e-a1c1-199f5bcb37a6
+        receiver:
+          type: string
+          description: UUID of the message receiver
+          example: 76fd30bb-9caf-4e79-8b2b-219ae63e8636
+        content:
+          type: string
+          minLength: 1
+          description: The message content
+          example: This is an SMS message
+        status:
+          type: string
+          nullable: true
+          description: The message status
+          example: sent
+        error_code:
+          type: string
+          nullable: true
+          description: The SMS message Twilio error code
+          example: '30002'
+        error_message:
+          type: string
+          nullable: true
+          description: The SMS message Twilio error message
+          example: The account has been suspended
+      required:
+      - content
+      - receiver
+      - sender
+      title: SMS Message Request
+    SmsMessageResponse:
+      type: object
+      properties:
+        uuid:
+          type: string
+          description: Universally unique identifier for object
+          example: 2c4f1d24-2952-4d4e-b1d1-3637e33cc161
+        created:
+          type: string
+          description: When the object was created
+          example: '2017-09-23T08:29:19.123+00:00'
+        created_by:
+          type: string
+          description: UUID of the user that created the object
+          example: d26570d8-a2c9-4906-9c6a-ea1a98b8b80f
+        modified:
+          type: string
+          description: When the object was modified
+          example: '2017-09-23T08:29:19.123+00:00'
+        modified_by:
+          type: string
+          description: UUID of the user that modified the object
+          example: 2a0e26e5-21b6-463a-92e8-06d7290067d0
+        sender:
+          type: string
+          description: UUID of the message sender
+          example: c75aa921-efc5-492e-a1c1-199f5bcb37a6
+        receiver:
+          type: string
+          description: UUID of the message receiver
+          example: 76fd30bb-9caf-4e79-8b2b-219ae63e8636
+        content:
+          type: string
+          minLength: 1
+          description: The message content
+          example: This is an SMS message
+        status:
+          type: string
+          nullable: true
+          description: The message status
+          example: sent
+        error_code:
+          type: string
+          nullable: true
+          description: The SMS message Twilio error code
+          example: '30002'
+        error_message:
+          type: string
+          nullable: true
+          description: The SMS message Twilio error message
+          example: The account has been suspended
+        twilio_sid:
+          type: string
+          description: Twilio identifier for the SMS message
+          example: '12345678'
+        date_sent:
+          type: string
+          description: ISO8601 date at which SMS message was sent
+          example: '2020-01-01T00:00:00.000Z'
+        trustomer_code:
+          type: string
+          description: Trustomer code with which SMS message is associated
+          example: ouh
+        product_name:
+          type: string
+          description: Product name with which SMS message is associated
+          example: gdm
+      required:
+      - content
+      - receiver
+      - sender
+      - twilio_sid
+      - uuid
+      title: SMS Message Response
+    SmsMessageStatusReport:
+      type: object
+      properties:
+        data_type:
+          type: string
+          description: The type of report
+          example: sms_status_counts
+        description:
+          type: string
+          description: The report description
+          example: This is a count of the sms statuses
+        data:
+          type: object
+          description: The report data
+          example:
+            '2019-11-14':
+              Sent: 2
+              Received: 1
+            '2019-11-15':
+              Read: 1
+          additionalProperties:
+            type: object
+      required:
+      - data_type
+      - description
+      title: SMS Message Status Report
+    CallbackRequest:
+      type: object
+      properties:
+        MessageSid:
+          type: string
+          description: A 34 character unique identifier for the message
+          example: AC3e553964a4935f4c505b451f0f3fd64e
+        MessageStatus:
+          type: string
+          description: The status of the message
+          example: delivered
+        ErrorCode:
+          type: string
+          nullable: true
+          description: The error code (if any) associated with the message
+          example: '30001'
+        ErrorMessage:
+          type: string
+          nullable: true
+          description: Message describing the error (if any)
+          example: Failed to deliver
+        DateSend:
+          type: string
+          nullable: true
+          description: A string representation of the date the message was
+          example: Failed to deliver
+        SmsSid:
+          type: string
+          nullable: true
+        To:
+          type: string
+          nullable: true
+        From:
+          type: string
+          nullable: true
+        ApiVersion:
+          type: string
+          nullable: true
+        SmsStatus:
+          type: string
+          nullable: true
+        AccountSid:
+          type: string
+          nullable: true
+        MessagingServiceSid:
+          type: string
+          nullable: true
+        Body:
+          type: string
+          nullable: true
+        NumMedia:
+          type: string
+          nullable: true
+        ChannelInstallSid:
+          type: string
+          nullable: true
+        ChannelStatusMessage:
+          type: string
+          nullable: true
+        EventType:
+          type: string
+          nullable: true
+        ChannelPrefix:
+          type: string
+          nullable: true
+      required:
+      - MessageSid
+      - MessageStatus
+      title: Callback request
+  responses:
+    BadRequest:
+      description: Bad or malformed request was received
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    NotFound:
+      description: The specified resource was not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    ServiceUnavailable:
+      description: Service or dependent resource not available
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

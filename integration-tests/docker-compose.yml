@@ -1,0 +1,76 @@
+x-environment:
+  &COMMON_ENVIRONMENT
+  ENVIRONMENT: DEVELOPMENT
+  DATABASE_HOST: dhos-sms-api-db
+  DATABASE_PORT: 5432
+  DATABASE_USER: dhos-sms-api-db
+  DATABASE_PASSWORD: dhos-sms-api-db
+  DATABASE_NAME: dhos-sms-api-db
+  LOG_LEVEL: DEBUG
+  LOG_FORMAT: COLOUR
+  SERVER_TIMEZONE: Europe/London
+  TWILIO_CALL_BACK_URL: "http://dummy-callback-url"
+  COUNTRY_CODE: GB
+  TWILIO_ACCOUNT_SID: test
+  TWILIO_AUTH_TOKEN: test
+  TWILIO_DISABLED: "true"
+
+services:
+  dhos-sms-integration-tests:
+    container_name: "dhos-sms-integration-tests"
+    build:
+      context: ./
+      args:
+        - PIP_EXTRA_INDEX_URL
+    environment:
+      <<: *COMMON_ENVIRONMENT
+      PRODUCT_NAME: testproduct
+      BEHAVE_ARGS: ${BEHAVE_ARGS:-}
+      REPORT_PORTAL_URL: ${REPORT_PORTAL_URL:-}
+      REPORT_PORTAL_TOKEN: ${REPORT_PORTAL_TOKEN:-}
+      REPORT_PORTAL_PROJECT: ${REPORT_PORTAL_PROJECT:-}
+      ENVIRONMENT: ${ENVIRONMENT:-}
+      RELEASE: ${RELEASE:-}
+      CUSTOMER_CODE: TST
+    command: >
+      bash -c "behave --no-capture --no-logcapture ${BEHAVE_ARGS:-}"
+    depends_on:
+      "dhos-sms-api":
+        condition: service_healthy
+
+  dhos-sms-api:
+    container_name: "dhos-sms-api"
+    build:
+      context: ..
+      args:
+        - GEMFURY_DOWNLOAD_KEY
+    environment:
+      <<: *COMMON_ENVIRONMENT
+    command: >-
+      bash -c "flask db upgrade 
+      && python -m dhos_sms_api"
+    depends_on:
+      "dhos-sms-api-db":
+        condition: service_healthy
+    healthcheck:
+      test: curl -f http://localhost:5000/running || false
+      interval: 3s
+      retries: 40
+      start_period: 5s
+    ports:
+      - "5000:5000"
+
+  dhos-sms-api-db:
+    container_name: "dhos-sms-api-db"
+    image: docker.io/postgres
+    command: ["postgres", "-c", "log_statement=all"]
+    environment:
+      POSTGRES_USER: dhos-sms-api-db
+      POSTGRES_DB: dhos-sms-api-db
+      POSTGRES_PASSWORD: dhos-sms-api-db
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U $${POSTGRES_USER}" ]
+      interval: 2s
+      timeout: 5s
+      retries: 20
+      start_period: 5s

@@ -1,0 +1,71 @@
+[tool.poetry]
+name = "dhos-sms-api"
+version = "0.0.1"
+description = "SMS API to manage text messages sent to patients"
+authors = ["Andrew Gill <andrew.gill@sensynehealth.com>"]
+keywords = ["SMS", "DHOS"]
+repository = "https://github.com/draysontechnologies/dhos-sms-api"
+
+[[tool.poetry.source]]
+name = "sensynehealth"
+url = "https://pypi.fury.io/sensynehealth/"
+
+[tool.poetry.dependencies]
+python = "^3.9"
+she-logging = "1.*"
+flask-batteries-included = {version = "3.*", extras = ["pgsql", "apispec"]}
+twilio = "7.*"
+phonenumbers = "8.*"
+
+[tool.poetry.dev-dependencies]
+bandit = "*"
+black = "*"
+coloredlogs = "*"
+coverage = "*"
+isort = "*"
+mock = "*"
+mypy = "*"
+pytest = "*"
+pytest-dhos = {version = "*", extras=["fbi"]}
+pytest-flask = "*"
+pytest-freezegun = "*"
+pytest-mock = "*"
+requests_mock = "*"
+sadisplay = "*"
+safety = "*"
+tox = "*"
+types-mock = "*"
+types-PyYAML = "*"
+types-requests = "*"
+
+[tool.mypy]
+namespace_packages=true
+ignore_missing_imports=false
+disallow_untyped_defs=true
+
+[[tool.mypy.overrides]]
+module = [
+    "waitress",
+    "pytest",
+    "flask.testing",
+    "apispec.*",
+    "connexion",
+    "apispec_webframeworks.*",
+    "pytest_mock",
+    "jose",
+    "flask",
+    "sadisplay",
+    "pytest_dhos.*",
+    "sqlalchemy.*",
+    "flask_sqlalchemy.*",
+    "twilio.*"
+]
+ignore_missing_imports = true
+
+[tool.isort]
+profile = "black"
+known_third_party = ["_pytest", "alembic", "apispec", "apispec_webframeworks", "behave", "click", "clients", "connexion", "environs", "faker", "flask", "flask_batteries_included", "flask_sqlalchemy", "helpers", "marshmallow", "mock", "phonenumbers", "psycopg2", "pytest", "pytest_mock", "reporting", "reportportal_behave", "requests", "sadisplay", "she_logging", "sqlalchemy", "twilio", "waitress", "yaml"]
+
+[tool.black]
+line-length = 88
+target-version = ["py39"]

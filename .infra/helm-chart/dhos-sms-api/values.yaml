@@ -1,0 +1,33 @@
+image:
+  acr:
+    api: sensynehealth.azurecr.io/dhos/dhos-sms-api
+    dbinit: sensynehealth.azurecr.io/dhos/dhos-db-init
+    utils: sensynehealth.azurecr.io/dhos/dhos-utils
+  gcr:
+    api: gcr.io/dhos-stack/dhos-sms-api
+    dbinit: gcr.io/dhos-stack/dhos-db-init
+    utils: gcr.io/dhos-stack/dhos-utils
+
+pull_images_from: acr
+
+default_replicas:
+  api: 2
+
+db_init_imagetag: 0.1.22
+utilsVersion: 0.1.27
+
+labels:
+  sh/group: dhos
+  sh/component: sms
+  sh/tier: back
+  sh/database: postgres
+
+ingress:
+  enabled: true
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+    nginx.ingress.kubernetes.io/auth-tls-verify-client: 'on'
+    nginx.ingress.kubernetes.io/auth-tls-secret: 'dhos-mgmt/internal-mtls-cert'
+    nginx.ingress.kubernetes.io/auth-tls-verify-depth: '2'
+    nginx.ingress.kubernetes.io/x-forwarded-prefix: /dhos-sms

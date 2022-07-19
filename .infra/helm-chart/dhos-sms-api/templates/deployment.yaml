@@ -1,0 +1,70 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dhos-sms-api-dep
+  annotations:
+    checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+    checksum/secret: {{ include (print $.Template.BasePath "/secrets.yaml") . | sha256sum }}
+  labels:
+    app: dhos-sms-api
+    sh/version: {{ .Values.imagetag }}
+    sh/type: api
+{{ toYaml .Values.labels | indent 4 }}
+spec:
+  replicas: {{ int (default .Values.default_replicas.api .Values.replicas) }}
+  selector:
+    matchLabels:
+      app: dhos-sms-api
+  template:
+    metadata:
+      labels:
+        app: dhos-sms-api
+        sh/version: {{ .Values.imagetag }}
+        sh/type: api
+{{ toYaml .Values.labels | indent 8 }}
+    spec:
+      initContainers:
+      - name: init-postgres
+        image: "{{ (index .Values.image .Values.pull_images_from).dbinit }}:{{ .Values.db_init_imagetag }}"
+        imagePullPolicy: {{ .Values.imagePullPolicy }}
+        args:
+        - {{ .Values.host_env }}-multitenant
+        envFrom:
+        - configMapRef:
+            name: dhos-sms-api-cm
+        - secretRef:
+            name: dhos-sms-api-secrets
+      containers:
+      - name: dhos-sms-api
+        image: "{{ (index .Values.image .Values.pull_images_from).api }}:{{ .Values.imagetag }}"
+        imagePullPolicy: {{ .Values.imagePullPolicy }}
+        command:
+        - /bin/bash
+        args:
+        - -c
+        - 'flask db upgrade && python -m dhos_sms_api'
+        envFrom:
+        - configMapRef:
+            name: dhos-sms-api-cm
+        - secretRef:
+            name: dhos-sms-api-secrets
+        ports:
+        - containerPort: 5000
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /running
+            port: 5000
+            scheme: HTTP
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 30
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /running
+            port: 5000
+            scheme: HTTP
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 20

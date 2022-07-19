@@ -1,0 +1,19 @@
+database:
+  host: us-dev-upstream-api001-goldfish-db.postgres.database.azure.com
+  user_name: dhos-sms@us-dev-upstream-api001-goldfish-db
+  su_name: postgres@us-dev-upstream-api001-goldfish-db
+  name: dhos-sms
+
+environment: DEVELOPMENT
+imagePullPolicy: IfNotPresent
+# This placeholder value gets overridden by devops-release-config-prod during a release
+imagetag: r1.14.0
+allow_drop_data: false
+host_env: azure
+
+gateway_url: https://api-us-dev.sensynehealth.com
+country_code: US
+twilio_account_sid: ACa33467fabbbe0f2955287fdd483aadfe
+
+ingress:
+  hostName: api-dev.sensynehealth.local

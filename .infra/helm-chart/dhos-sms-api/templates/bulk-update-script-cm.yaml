@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: dhos-sms-api-bulk-update-cm
+data:
+  script.sh: |
+    #!/usr/bin/env bash
+
+    _EXITCODE=0
+
+    curl -sSfv -X POST http://dhos-sms-api-svc/dhos/v1/sms/bulk_update
+    if [ $? -ne 0 ]; then echo "Endpoint failed: $ENDPOINT"; _EXITCODE=1; fi
+
+    if [ $_EXITCODE -ne 0 ]; then
+      echo "Failed"
+    else
+      echo "Success"
+    fi
+    exit $_EXITCODE

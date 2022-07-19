@@ -1,0 +1,19 @@
+{{- if .Values.ingress.enabled -}}
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  {{- with .Values.ingress.annotations }}
+  annotations:
+  {{- toYaml . | nindent 4 }}
+  {{- end }}
+  name: ing-{{ .Release.Name }}
+spec:
+  rules:
+    - host: {{ .Values.ingress.hostName }}
+      http:
+        paths:
+          - backend:
+              serviceName: {{ .Release.Name }}-svc
+              servicePort: 80
+            path: /dhos-sms(/|$)(.*)
+{{- end }}

@@ -1,0 +1,15 @@
+[paths]
+source =
+  dhos_sms_api/*
+
+[report]
+omit =
+  */__main__.py
+  dhos_sms_api/app.py
+  dhos_sms_api/autoapp.py
+  dhos_sms_api/blueprint_development/*
+
+fail_under = 90
+
+show_missing = true
+skip_covered = true

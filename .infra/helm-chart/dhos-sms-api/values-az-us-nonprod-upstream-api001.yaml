@@ -1,0 +1,20 @@
+database:
+  host: us-nonprod-upstream-api001-tomcat-db.postgres.database.azure.com
+  user_name: dhos-sms@us-nonprod-upstream-api001-tomcat-db
+  su_name: postgres@us-nonprod-upstream-api001-tomcat-db
+  name: dhos-sms
+
+environment: NONPRODUCTION
+imagePullPolicy: Always
+
+# This placeholder value gets overridden by devops-release-config (nonprod) devops-release-config-prod (prod) during a release
+imagetag: r1.14.0
+allow_drop_data: false
+host_env: azure
+
+gateway_url: https://api-us-nonprod.sensynehealth.com
+country_code: US
+twilio_account_sid: ACa33467fabbbe0f2955287fdd483aadfe
+
+ingress:
+  hostName: api-nonprod.sensynehealth.local

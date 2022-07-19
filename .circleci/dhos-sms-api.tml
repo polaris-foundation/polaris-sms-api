@@ -1,0 +1,35 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: ${CIRCLE_PROJECT_REPONAME}
+  namespace: argocd-${ENV}
+  annotations:
+    recipients.argocd-notifications.argoproj.io: "webhook:msteams"
+    environment: ${ENV}
+    description: "multi-tenant DHOS SMS API"
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: 'https://github.com/draysontechnologies/dhos-sms-api.git'
+    targetRevision: ${CIRCLE_SHA1}
+    path: .infra/helm-chart/dhos-sms-api
+    plugin:
+      name: sopsPlugin
+      env:
+      - name: NS_VALUES
+        value: \"values-az-${CC}-dev-upstream-api001.yaml\"
+      - name: SOPS_VALUES
+        value: \"values-az-${CC}-dev-upstream-api001-secrets-sops.yaml\"
+      - name: EXTRA_HELM_ARGS
+        value: \"--set imagetag=cb-${CIRCLE_BUILD_NUM}\"
+      - name: RELEASE_NAME
+        value: \"${CIRCLE_PROJECT_REPONAME}\"
+  destination:
+    server: 'https://kubernetes.default.svc'
+    namespace: ${CIRCLE_PROJECT_REPONAME}
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

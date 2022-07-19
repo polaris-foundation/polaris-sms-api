@@ -1,0 +1,19 @@
+database:
+  host: uk-nonprod-upstream-api001-shepherd-db.postgres.database.azure.com
+  user_name: dhos-sms@uk-nonprod-upstream-api001-shepherd-db
+  su_name: postgres@uk-nonprod-upstream-api001-shepherd-db
+  name: dhos-sms
+
+environment: NONPRODUCTION
+imagePullPolicy: IfNotPresent
+# This placeholder value gets overridden by devops-release-config during a release
+imagetag: r1.14.0
+allow_drop_data: false
+host_env: azure
+
+gateway_url: https://api-uk-nonprod.sensynehealth.com
+country_code: GB
+twilio_account_sid: AC3e553964a4935f4c505b451f0f3fd64e
+
+ingress:
+  hostName: api-nonprod.sensynehealth.local

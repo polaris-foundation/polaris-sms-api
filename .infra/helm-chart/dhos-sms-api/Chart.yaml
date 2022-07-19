@@ -1,0 +1,4 @@
+apiVersion: v1
+name: dhos-sms-api
+description: DHOS SMS API
+version: 1.0.0
