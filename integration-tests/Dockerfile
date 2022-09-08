@@ -1,5 +1,4 @@
 FROM python:3.9-slim
-ARG PIP_EXTRA_INDEX_URL
 
 WORKDIR /app
 
