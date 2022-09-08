@@ -3,12 +3,8 @@ name = "dhos-sms-api"
 version = "0.0.1"
 description = "SMS API to manage text messages sent to patients"
 authors = ["Andrew Gill <andrew.gill@sensynehealth.com>"]
-keywords = ["SMS", "DHOS"]
-repository = "https://github.com/draysontechnologies/dhos-sms-api"
-
-[[tool.poetry.source]]
-name = "sensynehealth"
-url = "https://pypi.fury.io/sensynehealth/"
+keywords = ["SMS", "Polaris"]
+repository = "https://github.com/polaris-foundation/polaris-sms-api"
 
 [tool.poetry.dependencies]
 python = "^3.9"
