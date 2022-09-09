@@ -43,22 +43,22 @@ jobs:
           command: .circleci/record_build_info.sh
       - run:
           name: Build docker image
-          command: docker build . -t polaris-observations-api
+          command: docker build . -t polaris-sms-api
       - run:
           name: Tag docker image
           command: |
-            docker tag polaris-observations-api ghcr.io/polaris-foundation/polaris-observations-api:latest
-            docker tag polaris-observations-api ghcr.io/polaris-foundation/polaris-observations-api:cb-${CIRCLE_BUILD_NUM}
-            docker tag polaris-observations-api ghcr.io/polaris-foundation/polaris-observations-api:$(git log --pretty=format:'%h' -n 1)
+            docker tag polaris-sms-api ghcr.io/polaris-foundation/polaris-sms-api:latest
+            docker tag polaris-sms-api ghcr.io/polaris-foundation/polaris-sms-api:cb-${CIRCLE_BUILD_NUM}
+            docker tag polaris-sms-api ghcr.io/polaris-foundation/polaris-sms-api:$(git log --pretty=format:'%h' -n 1)
       - run:
           name: Authenticate to GHCR
           command: echo $GHCR_TOKEN | docker login ghcr.io -u jonadaly --password-stdin
       - run:
           name: Push docker image
           command: |
-            docker push ghcr.io/polaris-foundation/polaris-observations-api:latest
-            docker push ghcr.io/polaris-foundation/polaris-observations-api:cb-${CIRCLE_BUILD_NUM}
-            docker push ghcr.io/polaris-foundation/polaris-observations-api:$(git log --pretty=format:'%h' -n 1)
+            docker push ghcr.io/polaris-foundation/polaris-sms-api:latest
+            docker push ghcr.io/polaris-foundation/polaris-sms-api:cb-${CIRCLE_BUILD_NUM}
+            docker push ghcr.io/polaris-foundation/polaris-sms-api:$(git log --pretty=format:'%h' -n 1)
 workflows:
   version: 2
   build_test_deploy:
